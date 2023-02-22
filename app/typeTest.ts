@@ -14,7 +14,7 @@ export async function handler(event , context) {
 }
 
 
-export const run = async (bucketName, fileName) => {
+export const run = async (bucketName : string, fileName) => {
     try {
         const REGION = "us-east-1";
         const s3Client = new S3Client({ region: REGION });
