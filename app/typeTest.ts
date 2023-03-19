@@ -1,6 +1,7 @@
 import { S3Client } from '@aws-sdk/client-s3';
 import { GetObjectCommand } from "@aws-sdk/client-s3";
-
+import { DynamoDBClient} from '@aws-sdk/client-dynamodb'
+import { DynamoDBDocumentClient ,QueryCommand  } from "@aws-sdk/lib-dynamodb"; // ES6 import
 import { v4 } from 'uuid'
 
 export async function handler(event , context) {
@@ -38,3 +39,37 @@ export const run = async (bucketName : string, fileName) => {
         console.log("Error", err);
     }
 };
+
+
+
+export const dynamoTest = async () => {
+
+    // aws dynamodb query \
+    // --table-name Reply \
+    // --key-condition-expression "Id = :id and begins_with(ReplyDateTime, :dt)" \
+    // --expression-attribute-values  file://values.json
+
+    const client = new DynamoDBClient({
+        region : 'us-east-1'
+    });
+    const ddbDocClient = DynamoDBDocumentClient.from(client); // client is DynamoDB client
+    
+    const command = new QueryCommand({
+        TableName: "NqAdminRequestTable",
+        ExpressionAttributeNames: {
+          "#PK": "PK",
+          "#SK": "SK"
+        },
+        ExpressionAttributeValues: {
+          ":CONTRACT": 'contractId#123456',
+          ":EMP": "empId#1234",
+        },
+        //FilterExpression: "#PK = :CONTRACT",
+        KeyConditionExpression: "#PK = :CONTRACT and begins_with(#SK,:EMP)",
+      });
+
+      let a =  await ddbDocClient.send(command);
+      console.log(a)
+};
+//console.log('hello')
+dynamoTest();
