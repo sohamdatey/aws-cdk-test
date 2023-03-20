@@ -1,8 +1,9 @@
 import { S3Client } from '@aws-sdk/client-s3';
 import { GetObjectCommand } from "@aws-sdk/client-s3";
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
-import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb"; // ES6 import
+
 import { v4 } from 'uuid'
+import { putItem, sendQuery, updateItem } from './dynamo-utils';
+
 
 export async function handler(event, context) {
     console.log('uuid', v4())
@@ -42,64 +43,46 @@ export const run = async (bucketName: string, fileName) => {
 
 
 
-export const getDeleteRequestsFromDB = async (contractId, empId?) => {
 
-    let tableName= "Test";
-    const queryParams = empId? {
-        TableName: tableName,
-        ExpressionAttributeNames: {
-            "#PK": "PK",
-            "#SK": "SK"
-        },
-        ExpressionAttributeValues: {
-            ":CONTRACT": `contractId#${contractId}`,
-            ":EMP": `empId#${empId}`,
-        },
-        //FilterExpression: "#PK = :CONTRACT",
-        KeyConditionExpression: "#PK = :CONTRACT and begins_with(#SK,:EMP)"
-    } : {
-        TableName: tableName,
-        ExpressionAttributeNames: {
-            "#PK": "PK"
-        },
-        ExpressionAttributeValues: {
-            ":CONTRACT": `contractId#${contractId}`,
-        },
-        //FilterExpression: "#PK = :CONTRACT",
-        KeyConditionExpression: "#PK = :CONTRACT"
-    }
-    try {
-        let results = [];
-        let LastEvaluatedKey = await queryAndAddToResults(queryParams, results);
-        while (LastEvaluatedKey) {
-            LastEvaluatedKey = await queryAndAddToResults({
-                ...queryParams,
-                ExclusiveStartKey: LastEvaluatedKey
-            }, results)
-        }
-       return results;
-    }catch(error){
-        //console.log('Unable to retrieve, requests with given, contractId', error)
-        return error;
-    }
-   
 
-};
-const queryAndAddToResults = async (query, results) => {
-    const client = new DynamoDBClient({
-        region: 'us-east-1'
-    });
-    const ddbDocClient = DynamoDBDocumentClient.from(client); // client is DynamoDB client
-    const command = new QueryCommand(query);
-    let more = await ddbDocClient.send(command);
-    results.push(...more.Items);
-    return more.LastEvaluatedKey;
-}
+
+
 try {
-    getDeleteRequestsFromDB('123456').then(
-        (data)=>{ console.log(data)},
-      // (error) =>{console.log('some error')}
-     );
-}catch (error){
+    sendQuery('Test', 'contractId#123456', 'empId#12345', [
+        {
+            ean: {
+                key: '#asd',
+                value: 'asd'
+            },
+            eav: {
+                key: ':asd',
+                value: 'soham'
+            },
+            'condition': 'begins_with(#asd, :asd)'
+        }
+    ]).then(
+        (data) => { console.log(data) },
+        // (error) =>{console.log('some error')}
+    );
+
+    putItem('Test', {
+        'PK' : 'contractId#123456',
+        'SK' : 'empId#8468#abfp-roin',
+        'asd' : 'soham'
+    });
+    updateItem('Test', {
+        PK : 'contractId#123456',
+        SK : 'empId#8468#abfp-roin',
+        attributes : [
+            {
+                key : 'Test1',
+                placeHolder : 'T',
+                value :'Hurray!'
+            }
+        ]
+    });
+
+    
+} catch (error) {
     console.log('some error')
 }
