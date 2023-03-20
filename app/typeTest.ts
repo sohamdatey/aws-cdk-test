@@ -77,12 +77,12 @@ try {
             {
                 key : 'Test2',
                 placeHolder : 'T',
-                value :'Hurray2!'
+                value :'yo1'
             },
             {
                 key : 'Test1',
                 placeHolder : 'P',
-                value :'HurrayUpdated'
+                value :'yo2'
             }
         ]
     });
