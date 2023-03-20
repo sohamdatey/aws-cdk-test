@@ -67,7 +67,7 @@ try {
 
     putItem('Test', {
         'PK' : 'contractId#123456',
-        'SK' : 'empId#8468#abfp-roin',
+        'SK' : 'empId#8469#abfp-roin',
         'asd' : 'soham'
     });
     updateItem('Test', {
@@ -75,9 +75,14 @@ try {
         SK : 'empId#8468#abfp-roin',
         attributes : [
             {
-                key : 'Test1',
+                key : 'Test2',
                 placeHolder : 'T',
-                value :'Hurray!'
+                value :'Hurray2!'
+            },
+            {
+                key : 'Test1',
+                placeHolder : 'P',
+                value :'HurrayUpdated'
             }
         ]
     });
