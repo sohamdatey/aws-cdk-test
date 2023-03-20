@@ -42,31 +42,47 @@ export const run = async (bucketName: string, fileName) => {
 
 
 
-export const dynamoTest = async () => {
+export const getDeleteRequestsFromDB = async (contractId, empId?) => {
 
-    const queryParams = {
-        TableName: "Test",
+    let tableName= "Test";
+    const queryParams = empId? {
+        TableName: tableName,
         ExpressionAttributeNames: {
             "#PK": "PK",
             "#SK": "SK"
         },
         ExpressionAttributeValues: {
-            ":CONTRACT": 'contractId#123456',
-            ":EMP": "empId#1234",
+            ":CONTRACT": `contractId#${contractId}`,
+            ":EMP": `empId#${empId}`,
         },
         //FilterExpression: "#PK = :CONTRACT",
         KeyConditionExpression: "#PK = :CONTRACT and begins_with(#SK,:EMP)"
+    } : {
+        TableName: tableName,
+        ExpressionAttributeNames: {
+            "#PK": "PK"
+        },
+        ExpressionAttributeValues: {
+            ":CONTRACT": `contractId#${contractId}`,
+        },
+        //FilterExpression: "#PK = :CONTRACT",
+        KeyConditionExpression: "#PK = :CONTRACT"
     }
-
-    let results = [];
-    let LastEvaluatedKey = await queryAndAddToResults(queryParams, results);
-    while (LastEvaluatedKey) {
-        LastEvaluatedKey = await queryAndAddToResults({
-            ...queryParams,
-            ExclusiveStartKey: LastEvaluatedKey
-        }, results)
+    try {
+        let results = [];
+        let LastEvaluatedKey = await queryAndAddToResults(queryParams, results);
+        while (LastEvaluatedKey) {
+            LastEvaluatedKey = await queryAndAddToResults({
+                ...queryParams,
+                ExclusiveStartKey: LastEvaluatedKey
+            }, results)
+        }
+       return results;
+    }catch(error){
+        //console.log('Unable to retrieve, requests with given, contractId', error)
+        return error;
     }
-    console.log(results, results.length)
+   
 
 };
 const queryAndAddToResults = async (query, results) => {
@@ -79,5 +95,11 @@ const queryAndAddToResults = async (query, results) => {
     results.push(...more.Items);
     return more.LastEvaluatedKey;
 }
-
-dynamoTest();
+try {
+    getDeleteRequestsFromDB('123456').then(
+        (data)=>{ console.log(data)},
+      // (error) =>{console.log('some error')}
+     );
+}catch (error){
+    console.log('some error')
+}
